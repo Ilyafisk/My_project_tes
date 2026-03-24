@@ -4,15 +4,11 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-def get_not_subscribed_keyboard(invite_link: str):
-    """
-    Клавиатура с обеими кнопками друг под другом (для неподписанных)
-
-    Args:
-        invite_link: Уникальная ссылка-приглашение для пользователя
-    """
+def get_not_subscribed_keyboard():
+    """Клавиатура с кнопками подписки и проверки (для неподписанных)"""
+    from config import CHANNEL_LINK
     keyboard = [
-        [InlineKeyboardButton("👉 Подписаться на закрытый канал", url=invite_link)],
+        [InlineKeyboardButton("👉 Подписаться на канал", url=CHANNEL_LINK)],
         [InlineKeyboardButton("👉 Проверить подписку", callback_data="check_subscription")]
     ]
     return InlineKeyboardMarkup(keyboard)

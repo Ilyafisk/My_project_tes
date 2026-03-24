@@ -63,29 +63,6 @@ async def check_subscription(context: ContextTypes.DEFAULT_TYPE, user_id: int) -
         return False
 
 
-async def create_invite_link(context: ContextTypes.DEFAULT_TYPE) -> str:
-    """
-    Создает одноразовую ссылку-приглашение в канал
-
-    Args:
-        context: Контекст бота
-
-    Returns:
-        str: Ссылка-приглашение
-    """
-    try:
-        # Создаем одноразовую ссылку (член_лимит = 1)
-        invite_link = await context.bot.create_chat_invite_link(
-            chat_id=config.CHANNEL_ID,
-            member_limit=1,  # Одноразовая ссылка
-            name=None  # Можно добавить имя для отслеживания
-        )
-        logger.info(f"🔗 Создана одноразовая ссылка: {invite_link.invite_link}")
-        return invite_link.invite_link
-    except TelegramError as e:
-        logger.error(f"Ошибка при создании ссылки-приглашения: {e}")
-        raise
-
 
 async def handle_audio(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Обработчик аудиофайлов — выводит file_id только в консоль"""
@@ -101,27 +78,12 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     logger.info(f"📩 /start от пользователя {user.id} ({user.first_name})")
 
-    # Генерируем уникальную одноразовую ссылку для пользователя
-    try:
-        invite_link = await create_invite_link(context)
-
-        # Сохраняем ссылку в user_data для использования в callback
-        context.user_data['invite_link'] = invite_link
-
-    except TelegramError as e:
-        logger.error(f"Не удалось создать ссылку-приглашение: {e}")
-        await context.bot.send_message(
-            chat_id=chat_id,
-            text="⚠️ Произошла ошибка. Попробуйте позже или свяжитесь с администратором."
-        )
-        return
-
-    # Отправляем приветствие с обеими кнопками
+    # Отправляем приветствие с кнопками
     await context.bot.send_message(
         chat_id=chat_id,
         text=messages.WELCOME,
         parse_mode="HTML",
-        reply_markup=keyboards.get_not_subscribed_keyboard(invite_link)
+        reply_markup=keyboards.get_not_subscribed_keyboard()
     )
 
 
@@ -160,20 +122,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         else:
             logger.info(f"❌ Пользователь {user_id} не подписан на канал")
 
-            # Получаем сохраненную ссылку или создаем новую
-            invite_link = context.user_data.get('invite_link')
-            if not invite_link:
-                try:
-                    invite_link = await create_invite_link(context)
-                    context.user_data['invite_link'] = invite_link
-                except TelegramError as e:
-                    logger.error(f"Не удалось создать ссылку: {e}")
-                    await context.bot.send_message(
-                        chat_id=chat_id,
-                        text="⚠️ Произошла ошибка. Попробуйте позже."
-                    )
-                    return
-
             # Редактируем существующее сообщение вместо отправки нового
             try:
                 await context.bot.edit_message_text(
@@ -181,16 +129,15 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     message_id=message_id,
                     text=messages.NOT_SUBSCRIBED,
                     parse_mode="HTML",
-                    reply_markup=keyboards.get_not_subscribed_keyboard(invite_link)
+                    reply_markup=keyboards.get_not_subscribed_keyboard()
                 )
             except TelegramError as e:
                 logger.error(f"Не удалось отредактировать сообщение: {e}")
-                # Если не удалось отредактировать, отправляем новое
                 await context.bot.send_message(
                     chat_id=chat_id,
                     text=messages.NOT_SUBSCRIBED,
                     parse_mode="HTML",
-                    reply_markup=keyboards.get_not_subscribed_keyboard(invite_link)
+                    reply_markup=keyboards.get_not_subscribed_keyboard()
                 )
 
     elif data == "get_meditation":

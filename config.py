@@ -8,6 +8,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 CHANNEL_ID = os.getenv('CHANNEL_ID')
 AUDIO_FILE_ID = "CQACAgQAAxkBAAIrF2mPcAmYYiq3aJ9v6SsqeXcplH9aAAJ_GgACgNthUAcD7pqFNXHTOgQ"
+CHANNEL_LINK = "https://t.me/ashamaya_balance"
 
 # Проверка обязательных переменных окружения
 if not BOT_TOKEN:
